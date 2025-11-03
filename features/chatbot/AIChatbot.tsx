@@ -3,7 +3,8 @@ import { getChatbotResponse, translateText } from '../../services/geminiService'
 import { ChatUI } from '../../components/ChatUI';
 import type { ChatMessage, ChatSession } from '../../types';
 import { LANGUAGE_MAP } from '../../constants';
-import { NewChatIcon, TrashIcon } from '../../components/Icons';
+// Fix: Import BotIcon.
+import { NewChatIcon, TrashIcon, SearchIcon, BotIcon } from '../../components/Icons';
 
 const HISTORY_KEY = 'satyavak_chat_history';
 
@@ -29,9 +30,15 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        setSessions(loadChatHistory());
+        const loadedSessions = loadChatHistory();
+        setSessions(loadedSessions);
+        // Automatically select the most recent chat if available
+        if (loadedSessions.length > 0 && !activeSessionId) {
+            setActiveSessionId(loadedSessions[0].id);
+        }
     }, []);
 
     useEffect(() => {
@@ -43,6 +50,12 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
         role: m.role,
         parts: [{ text: m.englishText }]
     })) || [];
+
+    const filteredSessions = searchQuery
+        ? sessions.filter(session =>
+            session.title.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : sessions;
 
 
     const handleNewChat = () => {
@@ -63,14 +76,25 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
     const handleDeleteSession = (id: string) => {
         setSessions(prev => prev.filter(s => s.id !== id));
         if (activeSessionId === id) {
-            setActiveSessionId(null);
+             const remainingSessions = sessions.filter(s => s.id !== id);
+             setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
         }
     };
 
     const handleSendMessage = async (englishMessage: string): Promise<void> => {
-        if (!activeSessionId) {
-            console.error("No active session to send message to.");
-            return;
+        let currentSessionId = activeSessionId;
+
+        // If no session is active, create a new one
+        if (!currentSessionId) {
+            const newSession: ChatSession = {
+                id: Date.now().toString(),
+                title: "New Chat",
+                createdAt: Date.now(),
+                messages: [],
+            };
+            setSessions(prev => [newSession, ...prev]);
+            setActiveSessionId(newSession.id);
+            currentSessionId = newSession.id;
         }
 
         setIsLoading(true);
@@ -79,7 +103,7 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
         const userMessage: ChatMessage = { role: 'user', text: translatedUserInput, englishText: englishMessage };
 
         setSessions(prev => prev.map(s => {
-            if (s.id === activeSessionId) {
+            if (s.id === currentSessionId) {
                 const isNewChat = s.messages.length === 0;
                 return {
                     ...s,
@@ -97,13 +121,13 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
             const modelMessage: ChatMessage = { role: 'model', text: translatedResponseText, englishText: englishResponseText };
             
             setSessions(prev => prev.map(s =>
-                s.id === activeSessionId ? { ...s, messages: [...s.messages, modelMessage] } : s
+                s.id === currentSessionId ? { ...s, messages: [...s.messages, modelMessage] } : s
             ));
         } catch (error) {
             console.error("Error fetching response:", error);
             const errorMessage: ChatMessage = { role: 'model', text: "Sorry, I encountered an error. Please try again.", englishText: "Sorry, I encountered an error. Please try again." };
             setSessions(prev => prev.map(s =>
-                s.id === activeSessionId ? { ...s, messages: [...s.messages, errorMessage] } : s
+                s.id === currentSessionId ? { ...s, messages: [...s.messages, errorMessage] } : s
             ));
         } finally {
             setIsLoading(false);
@@ -130,19 +154,32 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
 
     return (
         <div className="flex h-full">
-            <aside className="w-1/4 bg-brand-medium text-white flex flex-col">
-                <div className="p-4 border-b border-slate-600">
-                    <button onClick={handleNewChat} className="w-full flex items-center justify-center gap-2 bg-brand-accent hover:bg-sky-400 text-white font-bold py-2 px-4 rounded">
+            <aside className="w-1/4 bg-brand-medium text-white flex flex-col border-r border-slate-700">
+                <div className="p-4 border-b border-slate-700">
+                    <button onClick={handleNewChat} className="w-full flex items-center justify-center gap-2 bg-brand-accent hover:bg-brand-accent-dark text-white font-bold py-2.5 px-4 rounded-lg transition-colors">
                         <NewChatIcon className="w-5 h-5"/>
                         New Chat
                     </button>
                 </div>
+                <div className="p-2 border-b border-slate-700">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search chats..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-slate-800 text-sm rounded-md py-2 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-accent placeholder-slate-400"
+                            aria-label="Search past chats"
+                        />
+                        <SearchIcon className="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                </div>
                 <nav className="flex-1 overflow-y-auto">
-                    {sessions.map(session => (
+                    {filteredSessions.map(session => (
                         <div key={session.id} onClick={() => handleSelectSession(session.id)}
-                           className={`p-3 m-2 rounded cursor-pointer flex justify-between items-center group ${activeSessionId === session.id ? 'bg-brand-dark' : 'hover:bg-slate-700'}`}>
-                           <p className="truncate text-sm font-medium">{session.title}</p>
-                           <button onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }} className="text-slate-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                           className={`p-3 m-2 rounded-lg cursor-pointer flex justify-between items-center group transition-colors ${activeSessionId === session.id ? 'bg-brand-accent/20' : 'hover:bg-slate-700'}`}>
+                           <p className={`truncate text-sm font-medium ${activeSessionId === session.id ? 'text-brand-accent' : 'text-slate-200'}`}>{session.title}</p>
+                           <button onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }} className="text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
                                 <TrashIcon className="w-4 h-4" />
                            </button>
                         </div>
@@ -161,8 +198,11 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
                     />
                 ) : (
                     <div className="h-full flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-900">
-                         <h1 className="text-5xl font-bold text-brand-dark dark:text-white opacity-10">Satyavāk</h1>
-                         <p className="text-slate-500 dark:text-slate-400 mt-2">Select a conversation or start a new one.</p>
+                         <div className="w-16 h-16 bg-gradient-to-br from-brand-accent to-brand-secondary rounded-2xl flex items-center justify-center mb-4">
+                            <BotIcon className="w-10 h-10 text-white" />
+                         </div>
+                         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Satyavāk AI Assistant</h1>
+                         <p className="text-slate-500 dark:text-slate-400 mt-1">Select a conversation or start a new one.</p>
                     </div>
                 )}
             </main>

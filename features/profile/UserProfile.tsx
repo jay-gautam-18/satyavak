@@ -36,11 +36,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     };
 
     return (
-        <div className="p-4 md:p-8 bg-slate-50 dark:bg-brand-dark">
+        <div className="p-4 md:p-8">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-white dark:bg-brand-medium rounded-lg shadow-lg p-8 border border-slate-200 dark:border-slate-700">
+                <div className="bg-white dark:bg-brand-medium rounded-xl shadow-card p-8 border border-slate-200 dark:border-slate-700">
                     <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left space-y-6 md:space-y-0 md:space-x-8">
-                        <img src={user.avatarUrl} alt={user.name} className="w-32 h-32 rounded-full border-4 border-brand-accent shadow-md"/>
+                        <img src={user.avatarUrl} alt={user.name} className="w-32 h-32 rounded-full ring-4 ring-brand-accent ring-offset-4 ring-offset-white dark:ring-offset-brand-medium shadow-lg"/>
                         <div className="flex-grow">
                             <h2 className="text-4xl font-bold text-brand-dark dark:text-white">{user.name}</h2>
                             <p className="text-lg text-slate-500 dark:text-slate-400 mt-1">{user.email}</p>
@@ -57,12 +57,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                     </div>
                 </div>
 
-                <div className="mt-8 bg-white dark:bg-brand-medium rounded-lg shadow-lg p-8 border border-slate-200 dark:border-slate-700">
+                <div className="mt-8 bg-white dark:bg-brand-medium rounded-xl shadow-card p-8 border border-slate-200 dark:border-slate-700">
                     <h3 className="text-2xl font-semibold text-brand-dark dark:text-white mb-6">Generated Documents</h3>
                     {user.generatedDocuments.length > 0 ? (
                         <ul className="divide-y divide-slate-200 dark:divide-slate-700">
                             {user.generatedDocuments.map(doc => (
-                                <li key={doc.id} className="py-4 flex justify-between items-center">
+                                <li key={doc.id} className="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                     <div>
                                         <p className="font-semibold text-brand-dark dark:text-white">{doc.docType}</p>
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -71,7 +71,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                                     </div>
                                     <button
                                         onClick={() => handleDownload(doc.content, doc.docType)}
-                                        className="bg-brand-secondary text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-500 transition-colors text-sm flex items-center gap-2"
+                                        className="mt-2 sm:mt-0 bg-brand-secondary text-white font-semibold py-2 px-4 rounded-lg hover:bg-brand-secondary-dark transition-colors text-sm flex items-center gap-2"
                                     >
                                         <DocumentIcon className="w-4 h-4" />
                                         Download

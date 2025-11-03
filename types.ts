@@ -25,6 +25,11 @@ export interface ExpertLocationResult {
   contactNumber?: string;
 }
 
+export interface LegalAidResponse {
+  summary: string;
+  locations: ExpertLocationResult[];
+}
+
 export interface LegalNewsArticle {
   headline: string;
   summary: string;
@@ -33,6 +38,7 @@ export interface LegalNewsArticle {
   detailedBrief: string;
   keyPoints: string[];
   sources?: { title: string; uri: string; }[];
+  isFavorite?: boolean;
 }
 
 export interface GeneratedDocument {

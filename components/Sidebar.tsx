@@ -21,12 +21,12 @@ const navItems: { view: View; label: string; icon: React.ReactNode; }[] = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, setIsCollapsed }) => {
     return (
-        <aside className={`bg-brand-medium text-slate-300 flex flex-col transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
-            <div className={`p-4 flex items-center border-b border-slate-700 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <aside className={`bg-brand-medium text-slate-300 flex flex-col transition-all duration-300 border-r border-slate-700 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+            <div className={`p-4 flex items-center border-b border-slate-700 h-[69px] ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                 {!isCollapsed && <h1 className="text-xl font-bold text-white">Satyavāk</h1>}
                 <button 
                     onClick={() => setIsCollapsed(!isCollapsed)} 
-                    className="p-1 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white"
+                    className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-700"
                     aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {isCollapsed ? <ChevronRightIcon className="w-5 h-5" /> : <ChevronLeftIcon className="w-5 h-5" />}
@@ -35,14 +35,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCol
             <nav className="flex-1 mt-4">
                 <ul>
                     {navItems.map(item => (
-                        <li key={item.view} className="px-4">
+                        <li key={item.view} className="px-3">
                             <button
                                 onClick={() => onNavigate(item.view)}
-                                className={`w-full flex items-center p-3 my-1 rounded-md transition-colors ${
+                                className={`w-full flex items-center p-3 my-1 rounded-lg transition-colors ${
                                     currentView === item.view
-                                        ? 'bg-brand-accent text-white'
+                                        ? 'bg-brand-accent text-white shadow-lg'
                                         : 'hover:bg-slate-700'
                                 } ${isCollapsed ? 'justify-center' : ''}`}
+                                title={isCollapsed ? item.label : ''}
                             >
                                 {item.icon}
                                 {!isCollapsed && <span className="ml-4 font-semibold flex-1 text-left">{item.label}</span>}

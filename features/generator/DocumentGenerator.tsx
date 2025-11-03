@@ -3,7 +3,7 @@ import { generateDocument, translateText } from '../../services/geminiService';
 import { LANGUAGE_MAP } from '../../constants';
 import type { GeneratedDocument } from '../../types';
 import { Spinner } from '../../components/Spinner';
-import { DocumentIcon } from '../../components/Icons';
+import { DocumentIcon, FileTextIcon, CheckCircleIcon } from '../../components/Icons';
 
 // The html-to-docx library is loaded via a script tag in index.html and attaches itself to the window object.
 
@@ -47,6 +47,67 @@ const documentTypes: { [key: string]: { label: string; fields: { name: string; l
             { name: 'remedySought', label: 'Remedy/Action Required', placeholder: 'e.g., Payment of Rs. 50,000 within 15 days' },
         ],
     },
+    'affidavit': {
+        label: 'Affidavit',
+        fields: [
+            { name: 'deponentName', label: 'Deponent Full Name (Person making the statement)', placeholder: 'e.g., Gita Das' },
+            { name: 'deponentAddress', label: 'Deponent Full Address', placeholder: 'e.g., 77, MG Road, Hyderabad' },
+            { name: 'purpose', label: 'Purpose of the Affidavit', placeholder: 'e.g., For change of name in official documents' },
+            { name: 'statement', label: 'Statement of Facts', placeholder: 'State the facts you are swearing to be true, in numbered paragraphs.' },
+            { name: 'date', label: 'Date', placeholder: 'DD-MM-YYYY' },
+            { name: 'place', label: 'Place', placeholder: 'e.g., Hyderabad' },
+        ],
+    },
+    'will': {
+        label: 'Will',
+        fields: [
+            { name: 'testatorName', label: 'Testator Full Name (Person making the will)', placeholder: 'e.g., Ashok Sharma' },
+            { name: 'testatorAddress', label: 'Testator Full Address', placeholder: 'e.g., 12, Gandhi Marg, Pune' },
+            { name: 'executorName', label: 'Executor Full Name', placeholder: 'e.g., Sunita Sharma' },
+            { name: 'executorAddress', label: 'Executor Full Address', placeholder: 'e.g., 12, Gandhi Marg, Pune' },
+            { name: 'beneficiaries', label: 'Beneficiaries & Assets', placeholder: 'e.g., "My daughter, Sunita Sharma, inherits my house. My son, Rahul Sharma, inherits my bank balance."' },
+            { name: 'witness1Name', label: 'Witness 1 Full Name', placeholder: 'e.g., Rajesh Gupta' },
+            { name: 'witness2Name', label: 'Witness 2 Full Name', placeholder: 'e.g., Meena Iyer' },
+        ],
+    },
+    'power-of-attorney': {
+        label: 'Power of Attorney',
+        fields: [
+            { name: 'principalName', label: 'Principal Full Name (Person giving power)', placeholder: 'e.g., Anil Mehta' },
+            { name: 'principalAddress', label: 'Principal Full Address', placeholder: 'e.g., 34, Park Street, Kolkata' },
+            { name: 'agentName', label: 'Agent Full Name (Person receiving power)', placeholder: 'e.g., Vijay Mehta' },
+            { name: 'agentAddress', label: 'Agent Full Address', placeholder: 'e.g., 56, Lake View Road, Bengaluru' },
+            { name: 'powersGranted', label: 'Specific Powers Granted', placeholder: 'e.g., To manage bank accounts, sell property at 34, Park Street, Kolkata.' },
+            { name: 'effectiveDate', label: 'Effective Date', placeholder: 'DD-MM-YYYY' },
+            { name: 'duration', label: 'Duration', placeholder: 'e.g., Until revoked by me in writing.' },
+        ],
+    },
+};
+
+const StepIndicator: React.FC<{ currentStep: number }> = ({ currentStep }) => {
+    const steps = [
+        { number: 1, title: 'Select Type' },
+        { number: 2, title: 'Add Details' },
+        { number: 3, title: 'Download' }
+    ];
+
+    return (
+        <nav className="flex items-center justify-center mb-8" aria-label="Progress">
+            {steps.map((step, index) => (
+                <React.Fragment key={step.number}>
+                    <div className="flex flex-col items-center">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${currentStep >= step.number ? 'bg-brand-accent text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
+                           {currentStep > step.number ? <CheckCircleIcon className="w-6 h-6" /> : step.number}
+                        </div>
+                        <p className={`mt-2 text-sm font-semibold ${currentStep >= step.number ? 'text-brand-dark dark:text-white' : 'text-slate-500'}`}>{step.title}</p>
+                    </div>
+                    {index < steps.length - 1 && (
+                        <div className={`flex-auto border-t-2 transition-colors mx-4 ${currentStep > index + 1 ? 'border-brand-accent' : 'border-slate-200 dark:border-slate-700'}`}></div>
+                    )}
+                </React.Fragment>
+            ))}
+        </nav>
+    );
 };
 
 export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ language, onSaveDocument }) => {
@@ -131,43 +192,42 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ language, 
             case 1:
                 return (
                     <div>
-                        <h3 className="text-xl font-semibold text-brand-dark dark:text-white mb-4">Step 1: Select Document Type</h3>
-                        <select
-                            value={docTypeKey}
-                            onChange={(e) => {
-                                setDocTypeKey(e.target.value);
-                                setDetails({});
-                            }}
-                            className="w-full p-3 border border-slate-300 rounded-md focus:ring-brand-accent focus:border-brand-accent dark:bg-slate-800 dark:text-white dark:border-slate-600"
-                        >
-                            <option value="">-- Choose a document --</option>
+                        <div className="text-center">
+                            <h3 className="text-xl font-semibold text-brand-dark dark:text-white">Select Document Type</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Choose the type of legal document you need to create.</p>
+                        </div>
+                        <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
                             {Object.entries(documentTypes).map(([key, { label }]) => (
-                                <option key={key} value={key}>{label}</option>
+                                <button 
+                                  key={key} 
+                                  onClick={() => { setDocTypeKey(key); setDetails({}); setStep(2); }}
+                                  className={`p-4 text-center rounded-lg border-2 transition-colors ${docTypeKey === key ? 'border-brand-accent bg-brand-accent/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-brand-medium hover:border-brand-accent/50'}`}
+                                >
+                                    <FileTextIcon className="w-8 h-8 mx-auto text-brand-accent mb-2" />
+                                    <p className="font-semibold text-brand-dark dark:text-white text-sm">{label}</p>
+                                </button>
                             ))}
-                        </select>
-                        <button onClick={() => setStep(2)} disabled={!docTypeKey} className="mt-6 w-full bg-brand-accent text-white font-bold py-3 px-6 rounded-md hover:bg-sky-400 disabled:bg-slate-300">
-                            Next: Add Details
-                        </button>
+                        </div>
                     </div>
                 );
             case 2:
                 const selectedDoc = documentTypes[docTypeKey];
                 return (
                     <div>
-                        <h3 className="text-xl font-semibold text-brand-dark dark:text-white mb-4">Step 2: Fill in Details for {selectedDoc.label}</h3>
+                        <h3 className="text-xl font-semibold text-brand-dark dark:text-white mb-4">Fill in Details for: <span className="text-brand-accent">{selectedDoc.label}</span></h3>
                         <div className="space-y-4">
                             {selectedDoc.fields.map(field => (
                                 <div key={field.name}>
-                                    <label htmlFor={field.name} className="block text-sm font-medium text-slate-700 dark:text-slate-300">{field.label}</label>
-                                    <input id={field.name} name={field.name} value={details[field.name] || ''} onChange={handleDetailChange} type="text" placeholder={field.placeholder} className="mt-1 block w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-brand-accent focus:border-brand-accent dark:bg-slate-800 dark:text-white dark:border-slate-600"/>
+                                    <label htmlFor={field.name} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{field.label}</label>
+                                    <input id={field.name} name={field.name} value={details[field.name] || ''} onChange={handleDetailChange} type="text" placeholder={field.placeholder} className="block w-full p-2.5 border border-slate-300 rounded-lg shadow-subtle focus:ring-brand-accent focus:border-brand-accent dark:bg-slate-800 dark:text-white dark:border-slate-600"/>
                                 </div>
                             ))}
                         </div>
                          <div className="flex gap-4 mt-6">
-                            <button onClick={() => setStep(1)} className="w-1/2 bg-slate-200 dark:bg-slate-600 text-brand-dark dark:text-white font-bold py-3 px-6 rounded-md hover:bg-slate-300">
+                            <button onClick={() => setStep(1)} className="w-1/2 bg-slate-200 dark:bg-slate-600 text-brand-dark dark:text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-300 transition-colors">
                                 Back
                             </button>
-                            <button onClick={handleGenerate} disabled={isLoading} className="w-1/2 bg-brand-accent text-white font-bold py-3 px-6 rounded-md hover:bg-sky-400 disabled:bg-slate-300 flex items-center justify-center">
+                            <button onClick={handleGenerate} disabled={isLoading} className="w-1/2 bg-brand-accent text-white font-bold py-3 px-6 rounded-lg hover:bg-brand-accent-dark disabled:bg-slate-400 flex items-center justify-center transition-colors">
                                 {isLoading ? <Spinner/> : 'Generate Document'}
                             </button>
                         </div>
@@ -176,14 +236,14 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ language, 
             case 3:
                 return (
                      <div>
-                        <h3 className="text-2xl font-semibold text-brand-dark dark:text-white mb-4">Step 3: Your Document is Ready</h3>
+                        <h3 className="text-2xl font-semibold text-brand-dark dark:text-white mb-4">Your <span className="text-brand-accent">{documentTypes[docTypeKey].label}</span> is Ready</h3>
                         {error && <p className="text-red-500 mt-4">{error}</p>}
-                        <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md border dark:border-slate-700 max-h-96 overflow-y-auto" dangerouslySetInnerHTML={{ __html: generatedDoc }} />
+                        <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-700 max-h-96 overflow-y-auto prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: generatedDoc }} />
                         <div className="flex gap-4 mt-6">
-                            <button onClick={startOver} className="w-1/2 bg-slate-200 dark:bg-slate-600 text-brand-dark dark:text-white font-bold py-3 px-6 rounded-md hover:bg-slate-300">
+                            <button onClick={startOver} className="w-1/2 bg-slate-200 dark:bg-slate-600 text-brand-dark dark:text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-300 transition-colors">
                                 Generate Another
                             </button>
-                            <button onClick={handleDownload} className="w-1/2 bg-green-500 text-white font-bold py-3 px-6 rounded-md hover:bg-green-600 flex items-center justify-center gap-2">
+                            <button onClick={handleDownload} className="w-1/2 bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 transition-colors">
                                 <DocumentIcon className="w-5 h-5"/> Download as .docx
                             </button>
                         </div>
@@ -199,8 +259,11 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ language, 
         <div className="p-4 md:p-8">
             <h2 className="text-3xl font-bold text-brand-dark dark:text-white mb-2">Document Generator</h2>
             <p className="text-slate-600 dark:text-slate-400 mb-6">Create professional legal documents in a few simple steps.</p>
-            <div className="bg-white dark:bg-brand-medium p-6 rounded-lg shadow-md">
-                {renderStep()}
+            <div className="bg-white dark:bg-brand-medium p-6 md:p-8 rounded-xl shadow-card">
+                <StepIndicator currentStep={step} />
+                <div className="mt-8">
+                    {renderStep()}
+                </div>
             </div>
         </div>
     );

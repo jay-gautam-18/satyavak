@@ -47,12 +47,12 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, language, o
     ];
 
     return (
-        <div className="p-4 md:p-8 bg-slate-50 dark:bg-brand-dark">
+        <div className="p-4 md:p-8">
             <div className="max-w-4xl mx-auto">
                 <h2 className="text-3xl font-bold text-brand-dark dark:text-white mb-8">Settings</h2>
-                <div className="bg-white dark:bg-brand-medium rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-700">
+                <div className="space-y-6">
                     {settingsOptions.map(option => (
-                         <div key={option.title} className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                         <div key={option.title} className="bg-white dark:bg-brand-medium rounded-xl shadow-card p-6 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                             <div>
                                 <h3 className="text-lg font-semibold text-brand-dark dark:text-white">{option.title}</h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{option.description}</p>

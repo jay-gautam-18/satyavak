@@ -40,12 +40,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     };
 
     return (
-        <div className="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-brand-dark via-brand-dark to-slate-900 flex flex-col justify-center items-center p-4">
             <div className="w-full max-w-md text-center">
                 <h1 className="text-5xl font-bold text-white mb-2">Satyavāk</h1>
                 <p className="text-brand-accent mb-8">AI-Powered Legal Assistance for All</p>
 
-                <div className="bg-brand-medium p-8 rounded-lg shadow-2xl">
+                <div className="bg-white/5 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/10">
                     <h2 className="text-2xl font-semibold text-white mb-6">Login to Your Account</h2>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
@@ -56,7 +56,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                                 value={name}
                                 onChange={e => setName(e.target.value)}
                                 placeholder="Full Name"
-                                className="w-full p-3 bg-brand-dark text-white rounded-md border border-slate-600 focus:ring-2 focus:ring-brand-accent focus:outline-none"
+                                className="w-full p-3 bg-white/5 text-white rounded-lg border border-white/20 focus:ring-2 focus:ring-brand-accent focus:outline-none transition-colors"
                                 disabled={isLoading}
                                 aria-required="true"
                             />
@@ -71,7 +71,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                                 onChange={e => setPin(e.target.value)}
                                 placeholder="4-Digit PIN"
                                 maxLength={4}
-                                className="w-full p-3 bg-brand-dark text-white rounded-md border border-slate-600 focus:ring-2 focus:ring-brand-accent focus:outline-none"
+                                className="w-full p-3 bg-white/5 text-white rounded-lg border border-white/20 focus:ring-2 focus:ring-brand-accent focus:outline-none transition-colors"
                                 disabled={isLoading}
                                 aria-required="true"
                             />
@@ -82,7 +82,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-brand-accent text-white font-bold py-3 px-6 rounded-md hover:bg-sky-400 disabled:bg-slate-500 transition-colors flex items-center justify-center"
+                            className="w-full bg-brand-accent text-white font-bold py-3 px-6 rounded-lg hover:bg-brand-accent-dark disabled:bg-slate-500 transition-colors flex items-center justify-center"
                         >
                             {isLoading ? <Spinner className="w-6 h-6" /> : 'Login'}
                         </button>

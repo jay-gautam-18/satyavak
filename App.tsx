@@ -121,7 +121,7 @@ const App: React.FC = () => {
     const renderView = () => {
         if (!user) return null;
         switch (view) {
-            case 'dashboard': return <Dashboard user={user} />;
+            case 'dashboard': return <Dashboard user={user} navigateTo={navigateTo} />;
             case 'chatbot': return <AIChatbot language={language} />;
             case 'locator': return <ExpertLocator language={language} />;
             case 'courtroom': return <VirtualCourtroom language={language}/>;
@@ -131,7 +131,7 @@ const App: React.FC = () => {
             case 'profile': return <UserProfile user={user} />;
             case 'settings': return <Settings theme={theme} setTheme={setTheme} language={language} onLanguageChange={setLanguage} />;
             case 'notifications': return <Notifications notifications={notifications} onMarkAsRead={handleMarkAsRead} />;
-            default: return <Dashboard user={user} />;
+            default: return <Dashboard user={user} navigateTo={navigateTo} />;
         }
     };
 
@@ -140,7 +140,7 @@ const App: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen bg-brand-light dark:bg-brand-dark font-sans">
+        <div className="flex h-screen bg-brand-light dark:bg-brand-dark font-sans text-slate-800 dark:text-slate-200">
             <Sidebar 
                 currentView={view} 
                 onNavigate={navigateTo} 
@@ -157,7 +157,9 @@ const App: React.FC = () => {
                     unreadCount={notifications.filter(n => !n.read).length}
                 />
                 <main className="flex-1 overflow-y-auto">
-                    {renderView()}
+                   <div key={view} className="animate-fade-in">
+                        {renderView()}
+                    </div>
                 </main>
             </div>
         </div>

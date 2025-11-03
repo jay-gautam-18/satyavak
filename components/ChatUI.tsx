@@ -3,7 +3,7 @@ import type { ChatMessage } from '../types';
 import { getTextToSpeech, translateText } from '../services/geminiService';
 import { LANGUAGE_MAP } from '../constants';
 import { decode, decodeAudioData } from '../utils/audio';
-import { BotIcon, UserIcon, MicrophoneIcon, VolumeIcon, TranslateIcon, CopyIcon, ShareIcon, StopIcon } from './Icons';
+import { BotIcon, UserIcon, MicrophoneIcon, VolumeIcon, TranslateIcon, CopyIcon, ShareIcon, StopIcon, CheckCircleIcon } from './Icons';
 import { Spinner } from './Spinner';
 
 interface ChatUIProps {
@@ -78,6 +78,7 @@ export const ChatUI: React.FC<ChatUIProps> = ({ chatTitle, messages, isLoading, 
     
         // If the action was to stop the currently playing audio, we're done.
         if (nowPlaying && nowPlaying.index === index) {
+            setNowPlaying(null);
             return;
         }
         
@@ -114,15 +115,15 @@ export const ChatUI: React.FC<ChatUIProps> = ({ chatTitle, messages, isLoading, 
     const handleCopy = (text: string, index: number) => {
         navigator.clipboard.writeText(text);
         setCopied({ [index]: true });
-        setTimeout(() => setCopied({ [index]: false }), 2000);
+        setTimeout(() => setCopied(prev => ({ ...prev, [index]: false })), 2000);
     };
 
     return (
         <div className="flex flex-col h-full bg-slate-100 dark:bg-slate-900">
-            <div className="p-4 border-b bg-white dark:bg-brand-medium flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-brand-dark dark:text-white">{chatTitle}</h2>
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-brand-medium flex justify-between items-center shadow-subtle">
+                <h2 className="text-lg font-semibold text-brand-dark dark:text-white">{chatTitle}</h2>
                 {messages.length > 0 && (
-                    <button onClick={onShareChat} className="text-slate-500 hover:text-brand-dark dark:text-slate-400 dark:hover:text-white" aria-label="Share chat">
+                    <button onClick={onShareChat} className="p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700" aria-label="Share chat">
                         <ShareIcon className="w-5 h-5"/>
                     </button>
                 )}
@@ -130,39 +131,42 @@ export const ChatUI: React.FC<ChatUIProps> = ({ chatTitle, messages, isLoading, 
 
             {messages.length === 0 && !isLoading ? (
                  <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
-                    <h1 className="text-5xl font-bold text-brand-dark dark:text-white opacity-10">Satyavāk</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2">Your AI Legal Assistant</p>
+                    <div className="w-16 h-16 bg-gradient-to-br from-brand-accent to-brand-secondary rounded-2xl flex items-center justify-center mb-4">
+                        <BotIcon className="w-10 h-10 text-white" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Satyavāk AI Assistant</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Ask me anything about Indian law.</p>
                  </div>
             ) : (
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 space-y-6">
                     {messages.map((msg, index) => (
                         <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                            {msg.role === 'model' && <BotIcon className="w-8 h-8 text-brand-secondary flex-shrink-0 mt-1" />}
-                            <div className={`max-w-xl p-3 rounded-lg ${msg.role === 'user' ? 'bg-brand-accent text-white' : 'bg-white dark:bg-brand-medium text-brand-dark dark:text-white shadow-sm'}`}>
-                               <p className="whitespace-pre-wrap">{showOriginal[index] ? msg.englishText : msg.text}</p>
+                            {msg.role === 'model' && <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><BotIcon className="w-5 h-5 text-brand-secondary" /></div>}
+                            <div className={`max-w-xl p-3 px-4 rounded-2xl ${msg.role === 'user' ? 'bg-gradient-to-br from-brand-accent to-sky-400 text-white rounded-br-lg' : 'bg-white dark:bg-brand-medium text-brand-dark dark:text-white shadow-subtle rounded-bl-lg'}`}>
+                               <p className="whitespace-pre-wrap leading-relaxed">{showOriginal[index] ? msg.englishText : msg.text}</p>
                                {msg.role === 'model' && (
-                                    <div className="flex items-center space-x-3 mt-2">
-                                        <button onClick={() => playAudio(showOriginal[index] ? msg.englishText : msg.text, index)} className="text-slate-500 hover:text-brand-dark dark:text-slate-400 dark:hover:text-white" aria-label={nowPlaying?.index === index ? 'Stop audio' : 'Play audio'}>
-                                            {nowPlaying?.index === index ? <StopIcon className="w-5 h-5" /> : <VolumeIcon className="w-5 h-5"/>}
+                                    <div className="flex items-center space-x-1 mt-2 -ml-1">
+                                        <button onClick={() => playAudio(showOriginal[index] ? msg.englishText : msg.text, index)} className="p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700" aria-label={nowPlaying?.index === index ? 'Stop audio' : 'Play audio'}>
+                                            {nowPlaying?.index === index ? <StopIcon className="w-4 h-4" /> : <VolumeIcon className="w-4 h-4"/>}
                                         </button>
-                                        <button onClick={() => handleCopy(showOriginal[index] ? msg.englishText : msg.text, index)} className="text-slate-500 hover:text-brand-dark dark:text-slate-400 dark:hover:text-white" aria-label="Copy text">
-                                            {copied[index] ? <span className="text-xs font-semibold">Copied!</span> : <CopyIcon className="w-5 h-5"/>}
+                                        <button onClick={() => handleCopy(showOriginal[index] ? msg.englishText : msg.text, index)} className="p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700" aria-label="Copy text">
+                                            {copied[index] ? <CheckCircleIcon className="w-4 h-4 text-green-500" /> : <CopyIcon className="w-4 h-4"/>}
                                         </button>
                                         {language !== 'English' && msg.englishText !== msg.text && (
-                                             <button onClick={() => toggleTranslation(index)} className="text-slate-500 hover:text-brand-dark dark:text-slate-400 dark:hover:text-white" aria-label="Toggle translation">
-                                                <TranslateIcon className="w-5 h-5"/>
+                                             <button onClick={() => toggleTranslation(index)} className="p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700" aria-label="Toggle translation">
+                                                <TranslateIcon className="w-4 h-4"/>
                                             </button>
                                         )}
                                     </div>
                                )}
                             </div>
-                            {msg.role === 'user' && <UserIcon className="w-8 h-8 text-slate-500 flex-shrink-0 mt-1" />}
+                            {msg.role === 'user' && <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><UserIcon className="w-5 h-5 text-slate-500" /></div>}
                         </div>
                     ))}
                     {isLoading && (
                         <div className="flex items-start gap-3">
-                             <BotIcon className="w-8 h-8 text-brand-secondary flex-shrink-0 mt-1" />
-                             <div className="max-w-xl p-3 rounded-lg bg-white dark:bg-brand-medium text-brand-dark dark:text-white shadow-sm flex items-center">
+                             <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><BotIcon className="w-5 h-5 text-brand-secondary" /></div>
+                             <div className="max-w-xl p-3 px-4 rounded-2xl bg-white dark:bg-brand-medium text-brand-dark dark:text-white shadow-subtle rounded-bl-lg flex items-center">
                                 <Spinner className="w-5 h-5 mr-2 text-brand-secondary"/> Thinking...
                              </div>
                         </div>
@@ -171,21 +175,21 @@ export const ChatUI: React.FC<ChatUIProps> = ({ chatTitle, messages, isLoading, 
                 </div>
             )}
             
-            <div className="p-4 bg-white dark:bg-brand-medium border-t">
-                <div className="flex items-center space-x-2">
+            <div className="p-4 bg-white dark:bg-brand-medium border-t border-slate-200 dark:border-slate-800">
+                <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 rounded-full p-2">
                     <input
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                        placeholder="Type your message..."
-                        className="flex-1 p-3 border rounded-full focus:ring-2 focus:ring-brand-accent focus:outline-none dark:bg-slate-800 dark:text-white dark:border-slate-600"
+                        placeholder={`Message in ${LANGUAGE_MAP[language]}...`}
+                        className="flex-1 p-2 bg-transparent focus:outline-none dark:text-white placeholder-slate-500"
                         disabled={isLoading}
                     />
-                    <button onClick={handleVoiceInput} className={`p-3 rounded-full transition-colors ${isListening ? 'bg-red-500 text-white' : 'bg-slate-200 hover:bg-slate-300 text-brand-dark dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200'}`}>
+                    <button onClick={handleVoiceInput} className={`p-2 rounded-full transition-colors ${isListening ? 'bg-red-500 text-white' : 'text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700'}`}>
                        <MicrophoneIcon className="w-6 h-6"/>
                     </button>
-                    <button onClick={handleSend} disabled={isLoading || !input.trim()} className="bg-brand-accent text-white font-bold py-3 px-5 rounded-full hover:bg-sky-400 disabled:bg-slate-300">
+                    <button onClick={handleSend} disabled={isLoading || !input.trim()} className="bg-brand-accent text-white font-semibold py-2 px-5 rounded-full hover:bg-brand-accent-dark disabled:bg-slate-300 dark:disabled:bg-slate-600 transition-colors">
                         Send
                     </button>
                 </div>
