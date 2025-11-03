@@ -78,7 +78,7 @@ export const VirtualCourtroom: React.FC<{ language: string }> = ({ language }) =
     }, [transcript]);
 
     useEffect(() => {
-        // Cleanup speech recognition on unmount
+
         return () => {
             if (recognitionRef.current) {
                 recognitionRef.current.stop();
@@ -95,12 +95,12 @@ export const VirtualCourtroom: React.FC<{ language: string }> = ({ language }) =
         }
         const lastSpeaker = history.length > 0 ? history[history.length - 1].speaker : null;
 
-        // Case 1: Start of the simulation. It's the user's turn if they have the opening statement.
+       
         if (history.length === 0) {
             return selectedScenario?.openingStatement.speaker === userRole;
         }
 
-        // Case 2: Mid-simulation. It's the user's turn if the last speaker was the AI (opponent or judge).
+        // Mid-simulation. It's the user's turn if the last speaker was the AI (opponent or judge).
         return lastSpeaker !== userRole;
     }, [isLoading, simulationState, history, userRole, selectedScenario]);
 

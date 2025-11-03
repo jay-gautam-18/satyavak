@@ -108,10 +108,10 @@ const SpeechBubble: React.FC<{ text: string; isVisible: boolean; position?: 'top
         : `absolute -top-2 w-4 h-4 bg-white dark:bg-brand-medium transform rotate-45 ${arrowSideClasses}`;
         
     return (
-        <div className={`absolute z-20 w-auto max-w-[80vw] sm:max-w-md bg-white dark:bg-brand-medium text-brand-dark dark:text-white p-4 rounded-lg shadow-xl transition-all duration-300 ${positionClasses} ${animationClasses} ${containerSideClasses}`}
+        <div className={`absolute z-20 w-auto max-w-[280px] sm:max-w-[320px] md:max-w-[400px] bg-white dark:bg-brand-medium text-brand-dark dark:text-white p-4 rounded-lg shadow-xl transition-all duration-300 ${positionClasses} ${animationClasses} ${containerSideClasses}`}
              role="status" aria-live="polite"
         >
-            <p className="text-center">{text}</p>
+            <p className="text-center text-sm sm:text-base break-words">{text}</p>
             <div className={arrowClasses}></div>
         </div>
     );
