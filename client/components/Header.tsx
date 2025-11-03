@@ -32,12 +32,12 @@ export const Header: React.FC<HeaderProps> = ({ user, onNavigate, onBack, curren
         <div className="flex items-center space-x-2 sm:space-x-4">
             <button
                 onClick={() => onNavigate('notifications')}
-                className="relative p-2 rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                className="relative p-2 flex rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 aria-label="View notifications"
             >
-                <NotificationIcon className="w-6 h-6" />
+                <NotificationIcon className="w-6  h-6" />
                 {unreadCount > 0 && (
-                    <span className="notification-badge" aria-hidden="false">
+                    <span className="notification-badge text-xs text-red-500" aria-hidden="false">
                         {unreadCount}
                     </span>
                 )}

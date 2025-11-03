@@ -153,58 +153,61 @@ export const AIChatbot: React.FC<{ language: string }> = ({ language }) => {
     };
 
     return (
-        <div className="flex h-full">
-            <aside className="w-1/4 bg-brand-medium text-white flex flex-col border-r border-slate-700">
-                <div className="p-4 border-b border-slate-700">
-                    <button onClick={handleNewChat} className="w-full flex items-center justify-center gap-2 bg-brand-accent hover:bg-brand-accent-dark text-white font-bold py-2.5 px-4 rounded-lg transition-colors">
-                        <NewChatIcon className="w-5 h-5"/>
-                        New Chat
-                    </button>
+        <div className="flex h-[90vh]  border border-slate-300 dark:border-slate-700 rounded-2xl overflow-hidden shadow-lg">
+            <aside className="w-1/4 h-full bg-brand-medium text-white flex flex-col border-r border-slate-700 min-h-0">
+            <div className="p-4 border-b border-slate-700">
+                <button onClick={handleNewChat} className="w-full flex items-center justify-center gap-2 bg-brand-accent hover:bg-brand-accent-dark text-white font-bold py-2.5 px-4 rounded-lg transition-colors">
+                <NewChatIcon className="w-5 h-5"/>
+                New Chat
+                </button>
+            </div>
+            <div className="p-2 border-b border-slate-700">
+                <div className="relative">
+                <input
+                    type="text"
+                    placeholder="Search chats..."
+                    value={searchQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    className="w-full bg-slate-800 text-sm rounded-md py-2 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-accent placeholder-slate-400"
+                    aria-label="Search past chats"
+                />
+                <SearchIcon className="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 </div>
-                <div className="p-2 border-b border-slate-700">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            placeholder="Search chats..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-slate-800 text-sm rounded-md py-2 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-accent placeholder-slate-400"
-                            aria-label="Search past chats"
-                        />
-                        <SearchIcon className="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    </div>
+            </div>
+            <nav className="flex-1 overflow-y-auto min-h-0">
+                {filteredSessions.map((session: ChatSession) => (
+                <div key={session.id} onClick={() => handleSelectSession(session.id)}
+                   className={`p-3 m-2 rounded-lg cursor-pointer flex justify-between items-center group transition-colors ${activeSessionId === session.id ? 'bg-brand-accent/20' : 'hover:bg-slate-700'}`}>
+                   <p className={`truncate text-sm font-medium ${activeSessionId === session.id ? 'text-brand-accent' : 'text-slate-200'}`}>{session.title}</p>
+                   <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); handleDeleteSession(session.id); }} className="text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <TrashIcon className="w-4 h-4" />
+                   </button>
                 </div>
-                <nav className="flex-1 overflow-y-auto">
-                    {filteredSessions.map(session => (
-                        <div key={session.id} onClick={() => handleSelectSession(session.id)}
-                           className={`p-3 m-2 rounded-lg cursor-pointer flex justify-between items-center group transition-colors ${activeSessionId === session.id ? 'bg-brand-accent/20' : 'hover:bg-slate-700'}`}>
-                           <p className={`truncate text-sm font-medium ${activeSessionId === session.id ? 'text-brand-accent' : 'text-slate-200'}`}>{session.title}</p>
-                           <button onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }} className="text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                <TrashIcon className="w-4 h-4" />
-                           </button>
-                        </div>
-                    ))}
-                </nav>
+                ))}
+            </nav>
             </aside>
-            <main className="w-3/4">
-                {activeSession ? (
-                    <ChatUI 
-                        language={language} 
-                        chatTitle={activeSession.title}
-                        messages={activeSession.messages}
-                        isLoading={isLoading}
-                        onSendMessage={handleSendMessage}
-                        onShareChat={handleShareChat}
-                    />
-                ) : (
-                    <div className="h-full flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-900">
-                         <div className="w-16 h-16 bg-gradient-to-br from-brand-accent to-brand-secondary rounded-2xl flex items-center justify-center mb-4">
-                            <BotIcon className="w-10 h-10 text-white" />
-                         </div>
-                         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Satyavāk AI Assistant</h1>
-                         <p className="text-slate-500 dark:text-slate-400 mt-1">Select a conversation or start a new one.</p>
-                    </div>
-                )}
+            <main className="w-3/4 h-full flex flex-col min-h-0">
+            {activeSession ? (
+                // Ensure ChatUI can grow and internally scroll without pushing the input off-screen
+                <div className="flex-1 min-h-0">
+                <ChatUI 
+                    language={language} 
+                    chatTitle={activeSession.title}
+                    messages={activeSession.messages}
+                    isLoading={isLoading}
+                    onSendMessage={handleSendMessage}
+                    onShareChat={handleShareChat}
+                />
+                </div>
+            ) : (
+                <div className="flex-1 min-h-0 flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-900">
+                 <div className="w-16 h-16 bg-gradient-to-br from-brand-accent to-brand-secondary rounded-2xl flex items-center justify-center mb-4">
+                    <BotIcon className="w-10 h-10 text-white" />
+                 </div>
+                 <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Satyavāk AI Assistant</h1>
+                 <p className="text-slate-500 dark:text-slate-400 mt-1">Select a conversation or start a new one.</p>
+                </div>
+            )}
             </main>
         </div>
     );
